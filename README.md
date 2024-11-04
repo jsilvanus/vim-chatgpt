@@ -8,6 +8,13 @@ This Vim plugin brings the power of OpenAI's ChatGPT API into your Vim editor, e
 1) A ChatGPT API key from OpenAI.
 
 ## Installation
+Install as a Vim plugin, e.g. with Vim-Plugged:
+```bash
+call plug#begin('~/.vim/plugged')
+Plug 'CoderCookE/vim-chatgpt'
+call plug#end()
+```
+
 Add your ChatGPT API key to your environment:
 https://platform.openai.com/account/api-keys
 
