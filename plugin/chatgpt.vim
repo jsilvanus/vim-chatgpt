@@ -261,6 +261,7 @@ EOF
 endfunction
 
 " Function to send highlighted code to ChatGPT
+" Function to send highlighted code to ChatGPT
 function! SendHighlightedCodeToChatGPT(ask, context) abort
     let save_cursor = getcurpos()
     let [current_line, current_col] = getcurpos()[1:2]
@@ -269,25 +270,24 @@ function! SendHighlightedCodeToChatGPT(ask, context) abort
     let save_reg = @@
     let save_regtype = getregtype('@')
 
-    let [line_start, col_start] = getpos("'<")[1:2]
-    let [line_end, col_end] = getpos("'>")[1:2]
-
-    " Check if a selection is made and if current position is within the selection
-    if (col_end - col_start > 0 || line_end - line_start > 0) &&
-       \ (current_line == line_start && current_col == col_start ||
-       \  current_line == line_end && current_col == col_end)
-
-        let current_line_start = line_start
-        let current_line_end = line_end
-
-        if current_line_start == line_start && current_line_end == line_end
-            execute 'normal! ' . line_start . 'G' . col_start . '|v' . line_end . 'G' . col_end . '|y'
-            let yanked_text = '```' . &syntax . "\n" . @@ . "\n" . '```'
-        else
-            let yanked_text = ''
-        endif
+    " Check if visual selection is active
+    if mode() ==# 'v'
+        let [line_start, col_start] = getpos("'<")[1:2]
+        let [line_end, col_end] = getpos("'>")[1:2]
+        let yanked_text = '```' . &syntax . "\n" . getline(line_start, line_end) . "\n" . '```'
     else
-        let yanked_text = ''
+        " No visual selection; check for line range markup
+        if a:ask =~# '\d\+,\d\+Ask'
+            let line_range = split(a:ask, ',')
+            let line_start = str2nr(line_range[0])
+            let line_end = str2nr(line_range[1])
+            let yanked_text = '```' . &syntax . "\n" . getline(line_start, line_end) . "\n" . '```'
+            let prompt = a:context . ' ' . "\n"
+        else
+            " No valid selection or line range, return early
+            echo "No selection or valid line range provided."
+            return
+        endif
     endif
 
     let prompt = a:context . ' ' . "\n"
