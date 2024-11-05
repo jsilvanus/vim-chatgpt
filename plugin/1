@@ -261,7 +261,7 @@ EOF
 endfunction
 
 " Function to send highlighted code to ChatGPT
-function! SendHighlightedCodeToChatGPT(ask, context) range abort
+function! SendHighlightedCodeToChatGPT(ask, context) abort
     let save_cursor = getcurpos()
     let [current_line, current_col] = getcurpos()[1:2]
 
@@ -269,27 +269,21 @@ function! SendHighlightedCodeToChatGPT(ask, context) range abort
     let save_reg = @@
     let save_regtype = getregtype('@')
 
-    " If we have a range, use that, if not use visual
-    if (a:firstline != a:lastline || getline('.')[col('.')-1] != "")
+    if a:firstline != a:lastline || getline('.')[col('.')-1] != ""
       let line_start = a:firstline
       let line_end = a:lastline
-      let col_start = 0
-      let col_end = len(getline(line_end))
+      let col_start = 0;
+      let col_end = len(getline(line_end)) + 1
     else
       let [line_start, col_start] = getpos("'<")[1:2]
       let [line_end, col_end] = getpos("'>")[1:2]
     endif
 
-    echom "Line Start: " . line_start
-    echom "Line End: " . line_end
-    echom "Col Start: " . col_start
-    echom "Col End: " . col_end
-    echom "Current line: " . current_line
-    echom "Current col: " . current_col
-
     " Check if a selection is made and if current position is within the selection
-    if (col_end - col_start > 0 || line_end - line_start > 0)
-	echom "HIT!"
+    if (col_end - col_start > 0 || line_end - line_start > 0) &&
+       \ (current_line == line_start && current_col == col_start ||
+       \  current_line == line_end && current_col == col_end)
+
         let current_line_start = line_start
         let current_line_end = line_end
 
@@ -302,8 +296,6 @@ function! SendHighlightedCodeToChatGPT(ask, context) range abort
     else
         let yanked_text = ''
     endif
-
-    echom "Yanked etxt: " . yanked_text
 
     let prompt = a:context . ' ' . "\n"
 
